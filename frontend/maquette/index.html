@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>piver · Event Tracking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #07090c;
+      --bg-2:      #0b0e13;
+      --surface:   rgba(255, 255, 255, 0.035);
+      --surface-2: rgba(255, 255, 255, 0.06);
+      --border:    rgba(255, 255, 255, 0.09);
+      --border-2:  rgba(255, 255, 255, 0.14);
+      --txt:       #eef2f0;
+      --txt-dim:   #9aa6a1;
+      --txt-faint: #5f6a66;
+      --green:     #3ace5a;
+      --green-2:   #2ecc55;
+      --green-dim: rgba(58, 206, 90, 0.14);
+      --navy:      #1f7fb0;
+      --navy-dim:  rgba(31, 127, 176, 0.16);
+      --amber:     #f0b429;
+      --amber-dim: rgba(240, 180, 41, 0.15);
+      --radius:    18px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow background */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(58, 206, 90, 0.10), transparent 60%),
+        radial-gradient(700px 500px at 100% 0%, rgba(31, 127, 176, 0.10), transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 28px 60px;
+    }
+
+    /* ---------- Header ---------- */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+      backdrop-filter: blur(14px);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand img { height: 30px; width: auto; display: block; }
+    .brand .sep { width: 1px; height: 24px; background: var(--border-2); }
+    .brand .tag {
+      font-size: 13px; color: var(--txt-dim); font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    .userpick {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .userpick:hover { border-color: var(--border-2); background: var(--surface-2); }
+    .userpick .avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 700; color: #04130a;
+      background: linear-gradient(135deg, var(--green), var(--navy));
+    }
+    .userpick .chev { color: var(--txt-faint); font-size: 11px; }
+
+    /* ---------- Section titles ---------- */
+    .page-title { margin: 30px 2px 18px; }
+    .page-title h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.4px; }
+    .page-title p { color: var(--txt-dim); font-size: 14px; margin-top: 3px; }
+
+    .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+      text-transform: uppercase; color: var(--txt-faint);
+      display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+    }
+    .eyebrow::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 10px var(--green);
+    }
+
+    /* ---------- Metric bar ---------- */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+    .metric {
+      padding: 20px 24px;
+      border-left: 1px solid var(--border);
+    }
+    .metric:first-child { border-left: none; }
+    .metric .label {
+      font-size: 12px; color: var(--txt-dim); font-weight: 600; letter-spacing: .3px;
+    }
+    .metric .num {
+      font-size: 32px; font-weight: 800; margin-top: 8px;
+      font-variant-numeric: tabular-nums; letter-spacing: -1px;
+    }
+    .metric .delta { font-size: 12px; color: var(--txt-faint); margin-top: 3px; }
+    .metric .delta b { color: var(--green); font-weight: 600; }
+
+    /* ---------- Main grid ---------- */
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      padding: 22px;
+    }
+    .card + .card { margin-top: 16px; }
+
+    /* ---------- Form ---------- */
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--txt-dim); margin-bottom: 7px;
+    }
+    .field label .opt { color: var(--txt-faint); font-weight: 400; }
+    .control {
+      width: 100%;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      color: var(--txt);
+      font-size: 14px; font-family: inherit;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .control::placeholder { color: var(--txt-faint); }
+    .control:focus {
+      outline: none; border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-dim);
+    }
+    textarea.control { resize: vertical; min-height: 86px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+    /* segmented type picker */
+    .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg label {
+      margin: 0; text-align: center; cursor: pointer;
+      padding: 10px 6px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: rgba(0,0,0,0.2);
+      font-size: 13px; font-weight: 600; color: var(--txt-dim);
+      transition: all .16s;
+    }
+    .seg label:hover { border-color: var(--border-2); color: var(--txt); }
+    .seg input:checked + label {
+      color: var(--green); border-color: var(--green);
+      background: var(--green-dim);
+      box-shadow: 0 0 0 1px var(--green) inset;
+    }
+
+    .btn {
+      width: 100%; border: none; cursor: pointer;
+      padding: 12px 18px; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 700; font-family: inherit;
+      color: #04130a;
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      box-shadow: 0 8px 24px -8px rgba(58, 206, 90, 0.6);
+      transition: transform .14s, box-shadow .14s, filter .14s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 12px 30px -8px rgba(58, 206, 90, 0.7); }
+    .btn:active { transform: translateY(0); }
+
+    /* ---------- Summary panel ---------- */
+    .summary-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .summary-total { display: flex; align-items: baseline; gap: 10px; }
+    .summary-total .big {
+      font-size: 40px; font-weight: 800; letter-spacing: -1.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .summary-total .unit { font-size: 13px; color: var(--txt-dim); }
+    .summary-dates { font-size: 12px; color: var(--txt-faint); text-align: right; }
+    .summary-dates b { color: var(--txt-dim); font-weight: 600; }
+
+    .bar-row { margin-bottom: 14px; }
+    .bar-row:last-child { margin-bottom: 0; }
+    .bar-row .bar-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; margin-bottom: 7px;
+    }
+    .bar-row .bar-meta .name { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--txt); }
+    .bar-row .bar-meta .name .swatch { width: 9px; height: 9px; border-radius: 3px; }
+    .bar-row .bar-meta .val { color: var(--txt-dim); font-variant-numeric: tabular-nums; }
+    .bar-track {
+      height: 9px; border-radius: 999px;
+      background: rgba(255,255,255,0.06); overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 999px; }
+
+    /* ---------- Filters + list ---------- */
+    .list-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; }
+    .filters .control { width: auto; padding: 8px 12px; font-size: 13px; }
+    .filters select.control { padding-right: 28px; }
+
+    .pill {
+      font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px;
+      letter-spacing: .3px; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .pill .pdot { width: 7px; height: 7px; border-radius: 50%; }
+    .pill.login       { color: var(--green); background: var(--green-dim); }
+    .pill.login .pdot { background: var(--green); }
+    .pill.transaction       { color: #5cc6f0; background: var(--navy-dim); }
+    .pill.transaction .pdot { background: #5cc6f0; }
+    .pill.report       { color: var(--amber); background: var(--amber-dim); }
+    .pill.report .pdot { background: var(--amber); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .8px; color: var(--txt-faint);
+      padding: 0 14px 12px; border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 13px 14px; font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr { transition: background .15s; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    td.uid { font-weight: 600; }
+    td.when { color: var(--txt-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.payload code {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--txt-dim); background: rgba(0,0,0,0.3);
+      padding: 3px 8px; border-radius: 7px; border: 1px solid var(--border);
+    }
+    td.payload .none { color: var(--txt-faint); font-style: italic; }
+
+    /* empty state (utilisateur sans activité) */
+    .empty {
+      border: 1px dashed var(--border-2); border-radius: var(--radius);
+      padding: 28px; text-align: center; margin-top: 16px;
+      background: rgba(0,0,0,0.15);
+    }
+    .empty .icn {
+      width: 46px; height: 46px; border-radius: 14px; margin: 0 auto 12px;
+      display: grid; place-items: center; font-size: 22px;
+      background: var(--green-dim); color: var(--green);
+    }
+    .empty h4 { font-size: 15px; font-weight: 700; }
+    .empty p { font-size: 13px; color: var(--txt-dim); margin-top: 4px; }
+
+    .foot-note {
+      text-align: center; color: var(--txt-faint); font-size: 12px;
+      margin-top: 34px;
+    }
+    .foot-note code { font-family: 'JetBrains Mono', monospace; color: var(--txt-dim); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric:nth-child(3) { border-left: none; }
+      .metric:nth-child(3), .metric:nth-child(4) { border-top: 1px solid var(--border); }
+    }
+    @media (max-width: 560px) {
+      .shell { padding: 16px 16px 40px; }
+      .brand .tag { display: none; }
+      .metrics { grid-template-columns: 1fr; }
+      .metric { border-left: none; border-top: 1px solid var(--border); }
+      .metric:first-child { border-top: none; }
+      .metric .num { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+
+    <!-- ===== Header ===== -->
+    <header>
+      <div class="brand">
+        <img src="piver-logo.png" alt="piver" />
+        <span class="sep"></span>
+        <span class="tag">Event Tracking</span>
+      </div>
+      <div class="userpick">
+        <span class="avatar">U1</span>
+        <span>user&nbsp;<strong>u1</strong></span>
+        <span class="chev">▾</span>
+      </div>
+    </header>
+
+    <!-- ===== Title ===== -->
+    <div class="page-title">
+      <h1>Activité des événements</h1>
+      <p>Suivi des événements utilisateurs — login, transactions et rapports.</p>
+    </div>
+
+    <!-- ===== Metric bar ===== -->
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Total</div>
+        <div class="num">1&nbsp;248</div>
+        <div class="delta"><b>+38</b> aujourd'hui</div>
+      </div>
+      <div class="metric">
+        <div class="label">Login</div>
+        <div class="num">842</div>
+        <div class="delta">67% du total</div>
+      </div>
+      <div class="metric">
+        <div class="label">Transaction</div>
+        <div class="num">406</div>
+        <div class="delta">33% du total</div>
+      </div>
+      <div class="metric">
+        <div class="label">Report</div>
+        <div class="num">0</div>
+        <div class="delta">aucun pour l'instant</div>
+      </div>
+    </div>
+
+    <!-- ===== Main grid ===== -->
+    <div class="grid">
+
+      <!-- Left: create event -->
+      <div>
+        <div class="card">
+          <div class="eyebrow">Nouvel événement</div>
+          <form onsubmit="return false">
+            <div class="field">
+              <label for="uid">User ID</label>
+              <input class="control" id="uid" placeholder="ex. u1" value="u1" />
+            </div>
+
+            <div class="field">
+              <label>Type</label>
+              <div class="seg">
+                <input type="radio" name="type" id="t-login" checked />
+                <label for="t-login">login</label>
+                <input type="radio" name="type" id="t-tx" />
+                <label for="t-tx">transaction</label>
+                <input type="radio" name="type" id="t-report" />
+                <label for="t-report">report</label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="payload">Payload <span class="opt">· optionnel (JSON)</span></label>
+              <textarea class="control" id="payload" placeholder='{ "ip": "10.0.0.4", "device": "mobile" }'></textarea>
+            </div>
+
+            <button class="btn" type="submit">＋ Créer l'événement</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right: summary + list -->
+      <div>
+        <!-- Summary -->
+        <div class="card">
+          <div class="eyebrow">Résumé — user u1</div>
+          <div class="summary-head">
+            <div class="summary-total">
+              <span class="big">1&nbsp;248</span>
+              <span class="unit">événements au total</span>
+            </div>
+            <div class="summary-dates">
+              <div>premier&nbsp;: <b>12 mars 2026</b></div>
+              <div>dernier&nbsp;: <b>04 juin · 08:42</b></div>
+            </div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-meta">
+              <span class="name"><span class="swatch" style="background:var(--green)"></span>login</span>
+              <span class="val">842</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:67%;background:var(--green)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta">
+              <span class="name"><span class="swatch" style="background:#5cc6f0"></span>transaction</span>
+              <span class="val">406</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:33%;background:#5cc6f0"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta">
+              <span class="name"><span class="swatch" style="background:var(--amber)"></span>report</span>
+              <span class="val">0</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--amber)"></div></div>
+          </div>
+        </div>
+
+        <!-- List + filters -->
+        <div class="card">
+          <div class="list-head">
+            <div class="eyebrow" style="margin-bottom:0">Événements récents</div>
+            <div class="filters">
+              <input class="control" placeholder="filtrer par user_id…" />
+              <select class="control">
+                <option>type — tous</option>
+                <option>login</option>
+                <option>transaction</option>
+                <option>report</option>
+              </select>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>User</th>
+                <th>Payload</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="pill login"><span class="pdot"></span>login</span></td>
+                <td class="uid">u1</td>
+                <td class="payload"><code>{ "ip": "10.0.0.4" }</code></td>
+                <td class="when">04 juin · 08:42</td>
+              </tr>
+              <tr>
+                <td><span class="pill transaction"><span class="pdot"></span>transaction</span></td>
+                <td class="uid">u1</td>
+                <td class="payload"><code>{ "amount": 49.9 }</code></td>
+                <td class="when">04 juin · 08:39</td>
+              </tr>
+              <tr>
+                <td><span class="pill login"><span class="pdot"></span>login</span></td>
+                <td class="uid">u2</td>
+                <td class="payload"><span class="none">—</span></td>
+                <td class="when">04 juin · 08:31</td>
+              </tr>
+              <tr>
+                <td><span class="pill transaction"><span class="pdot"></span>transaction</span></td>
+                <td class="uid">u1</td>
+                <td class="payload"><code>{ "amount": 12.0 }</code></td>
+                <td class="when">03 juin · 21:07</td>
+              </tr>
+              <tr>
+                <td><span class="pill login"><span class="pdot"></span>login</span></td>
+                <td class="uid">u3</td>
+                <td class="payload"><code>{ "device": "mobile" }</code></td>
+                <td class="when">03 juin · 18:54</td>
+              </tr>
+              <tr>
+                <td><span class="pill transaction"><span class="pdot"></span>transaction</span></td>
+                <td class="uid">u2</td>
+                <td class="payload"><code>{ "amount": 8.5 }</code></td>
+                <td class="when">03 juin · 16:20</td>
+              </tr>
+              <tr>
+                <td><span class="pill login"><span class="pdot"></span>login</span></td>
+                <td class="uid">u1</td>
+                <td class="payload"><span class="none">—</span></td>
+                <td class="when">03 juin · 09:12</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state (cas: utilisateur sans activité) -->
+        <div class="empty">
+          <div class="icn">∅</div>
+          <h4>Aucune activité pour <strong>user u9</strong></h4>
+          <p>L'absence d'événement est une réponse valide — <code style="font-family:'JetBrains Mono',monospace">total: 0</code>, pas d'erreur 404.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="foot-note">Maquette statique · <code>frontend/maquette/index.html</code> — données fictives, aucun appel API.</p>
+  </div>
+</body>
+</html>
