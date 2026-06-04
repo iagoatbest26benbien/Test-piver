@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import events
+from .routers import events, users
 
 app = FastAPI(title="piver — Event Tracking API")
 
@@ -23,3 +23,4 @@ def health() -> dict[str, str]:
 
 
 app.include_router(events.router)
+app.include_router(users.router)
