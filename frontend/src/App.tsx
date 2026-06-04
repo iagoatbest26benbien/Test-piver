@@ -107,10 +107,6 @@ export default function App() {
           />
         </div>
       </div>
-
-      <p className="foot-note">
-        piver · Event Tracking — API&nbsp;: <code>{import.meta.env.VITE_API_URL ?? "http://localhost:8000"}</code>
-      </p>
     </div>
   );
 }

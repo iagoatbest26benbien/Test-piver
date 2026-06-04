@@ -280,9 +280,6 @@ td.payload .none { color: var(--txt-faint); font-style: italic; }
 .state { padding: 26px 14px; text-align: center; color: var(--txt-dim); font-size: 14px; }
 .state.error { color: #ff8a8a; }
 
-.foot-note { text-align: center; color: var(--txt-faint); font-size: 12px; margin-top: 34px; }
-.foot-note code { font-family: "JetBrains Mono", monospace; color: var(--txt-dim); }
-
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .grid { grid-template-columns: 1fr; }
