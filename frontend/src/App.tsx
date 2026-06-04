@@ -77,7 +77,7 @@ export default function App() {
 
   return (
     <div className="shell">
-      <Header users={users} selectedUser={selectedUser} onSelectUser={setSelectedUser} />
+      <Header />
 
       <div className="page-title">
         <h1>Activité des événements</h1>
@@ -91,7 +91,13 @@ export default function App() {
           <EventForm defaultUserId={selectedUser} onCreate={handleCreate} />
         </div>
         <div>
-          <SummaryPanel summary={summary} loading={summaryLoading} />
+          <SummaryPanel
+            summary={summary}
+            loading={summaryLoading}
+            users={users}
+            selectedUser={selectedUser}
+            onSelectUser={setSelectedUser}
+          />
           <EventList
             events={events}
             loading={eventsLoading}
