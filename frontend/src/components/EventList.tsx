@@ -51,33 +51,35 @@ export default function EventList({ events, loading, error, filters, onFiltersCh
       ) : events.length === 0 ? (
         <div className="state">Aucun événement pour ces filtres.</div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>User</th>
-              <th>Payload</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((ev) => {
-              const payload = formatPayload(ev.payload);
-              return (
-                <tr key={ev.id}>
-                  <td>
-                    <TypeBadge type={ev.type} />
-                  </td>
-                  <td className="uid">{ev.user_id}</td>
-                  <td className="payload">
-                    {payload ? <code>{payload}</code> : <span className="none">—</span>}
-                  </td>
-                  <td className="when">{formatDateTime(ev.created_at)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>User</th>
+                <th>Payload</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((ev) => {
+                const payload = formatPayload(ev.payload);
+                return (
+                  <tr key={ev.id}>
+                    <td>
+                      <TypeBadge type={ev.type} />
+                    </td>
+                    <td className="uid">{ev.user_id}</td>
+                    <td className="payload">
+                      {payload ? <code>{payload}</code> : <span className="none">—</span>}
+                    </td>
+                    <td className="when">{formatDateTime(ev.created_at)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

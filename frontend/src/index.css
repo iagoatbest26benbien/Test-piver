@@ -243,11 +243,15 @@ textarea.control { resize: vertical; min-height: 86px; font-family: "JetBrains M
 .pill.report       { color: var(--amber); background: var(--amber-dim); }
 .pill.report .pdot { background: var(--amber); }
 
+/* Au-delà de ~10 lignes, la liste défile au lieu d'étirer la page à l'infini. */
+.table-scroll { max-height: 460px; overflow-y: auto; }
 table { width: 100%; border-collapse: collapse; }
 thead th {
   text-align: left; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .8px; color: var(--txt-faint);
-  padding: 0 14px 12px; border-bottom: 1px solid var(--border);
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  /* En-tête figé pendant le défilement (fond opaque pour masquer les lignes). */
+  position: sticky; top: 0; z-index: 1; background: #0b0e13;
 }
 tbody td { padding: 13px 14px; font-size: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; }
 tbody tr:last-child td { border-bottom: none; }
