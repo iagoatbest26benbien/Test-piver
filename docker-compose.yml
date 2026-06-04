@@ -1,0 +1,11 @@
+# `docker compose up --build` build et sert l'app.
+# Les services `db` et `backend` seront ajoutés à côté au fur et à mesure.
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend.Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
