@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
+from .routers import events
 
 app = FastAPI(title="piver — Event Tracking API")
 
@@ -19,3 +20,6 @@ app.add_middleware(
 def health() -> dict[str, str]:
     """Sonde simple pour vérifier que l'API répond."""
     return {"status": "ok"}
+
+
+app.include_router(events.router)
