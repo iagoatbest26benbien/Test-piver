@@ -66,7 +66,7 @@ Types d'événement (liste fermée) : `login`, `transaction`, `report`.
   serveur de dev et pas une image nginx dédiée. Le choix : `vite preview` sert le bundle statique
   déjà buildé en une seule commande, sans config serveur en plus — suffisant pour ce périmètre
   (une page, design non noté). Une image multi-stage nginx serait plus « prod » (compression, cache,
-  process multiples) mais ce serait de la sur-ingénierie ici → choix assumé de rester simple. Pour
+  process multiples) mais ce serait over-kill ici → choix assumé de rester simple. Pour
   un vrai déploiement, on passerait à nginx.
 - **Config par variables d'environnement** uniquement (`DATABASE_URL`, `POSTGRES_*`, `CORS_ORIGINS`,
   `VITE_API_URL`), aucune variable en dur. `.env.example` fourni.
