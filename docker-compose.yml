@@ -1,6 +1,40 @@
-# `docker compose up --build` build et sert l'app.
-# Les services `db` et `backend` seront ajoutés à côté au fur et à mesure.
+# `docker compose up --build` lance les 3 services : db, backend, frontend.
 services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-piver}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-piver}
+      POSTGRES_DB: ${POSTGRES_DB:-piver}
+    volumes:
+      # Données persistées via volume nommé (survivent au redémarrage).
+      - pgdata:/var/lib/postgresql/data
+      # init.sql joué une seule fois, au premier démarrage sur volume vide.
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-piver} -d ${POSTGRES_DB:-piver}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend.Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://piver:piver@db:5432/piver}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   frontend:
     build:
       context: ./frontend
@@ -9,3 +43,9 @@ services:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     ports:
       - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:
