@@ -9,8 +9,8 @@ et expose une lecture simple de l'activité par utilisateur. Stack : **FastAPI**
 Prérequis : Docker + Docker Compose.
 
 ```bash
-git clone <url-du-repo>
-cd <repo>
+git clone https://github.com/iagoatbest26benbien/Test-piver.git
+cd Test-piver
 cp .env.example .env        # valeurs par défaut prêtes à l'emploi
 docker compose up --build
 ```
