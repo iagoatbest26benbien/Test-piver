@@ -1,5 +1,7 @@
 # Mini API de suivi d'événements
 
+> Réalisé par **Anas El Manssouri**.
+
 Petite plateforme qui reçoit des **événements** liés à des utilisateurs, les stocke en PostgreSQL,
 et expose une lecture simple de l'activité par utilisateur. Stack : **FastAPI**, **PostgreSQL 16**,
 **React + Vite + TypeScript**, le tout en **Docker Compose**.
@@ -60,6 +62,12 @@ Types d'événement (liste fermée) : `login`, `transaction`, `report`.
   valide) ; une contrainte `CHECK` en base sert de défense supplémentaire.
 - **Front** : React + Vite + TypeScript, une seule page, `fetch` natif (pas d'`axios` : une seule
   dépendance réseau en moins, le besoin est trivial). État local via hooks, pas de state manager.
+- **Service du front via `vite preview`** sur le **build de production** (`vite build`), pas le
+  serveur de dev et pas une image nginx dédiée. Le choix : `vite preview` sert le bundle statique
+  déjà buildé en une seule commande, sans config serveur en plus — suffisant pour ce périmètre
+  (une page, design non noté). Une image multi-stage nginx serait plus « prod » (compression, cache,
+  process multiples) mais ce serait de la sur-ingénierie ici → choix assumé de rester simple. Pour
+  un vrai déploiement, on passerait à nginx.
 - **Config par variables d'environnement** uniquement (`DATABASE_URL`, `POSTGRES_*`, `CORS_ORIGINS`,
   `VITE_API_URL`), aucune variable en dur. `.env.example` fourni.
 - **Point réseau important** : le navigateur tourne sur l'hôte, il joint donc l'API via le port
